@@ -1,18 +1,27 @@
 
 import React from 'react';
 import { AVAILABLE_FIELDS } from '../../data/fields';
-import { PlateEditor, insertNodes } from '@udecode/plate-common';
+import { Editor } from 'slate';
+import { ReactEditor } from 'slate-react';
 import { createFieldElement } from './field-plugin';
 import { Tag } from 'lucide-react';
 
 interface FieldSelectorProps {
-  editor: PlateEditor;
+  editor: Editor & ReactEditor;
 }
 
 const FieldSelector: React.FC<FieldSelectorProps> = ({ editor }) => {
   const handleFieldClick = (fieldId: string) => {
     // Insert a field node at the current selection
-    insertNodes(editor, createFieldElement(fieldId));
+    const field = createFieldElement(fieldId);
+    
+    // First ensure our editor has focus
+    if (!ReactEditor.isFocused(editor)) {
+      ReactEditor.focus(editor);
+    }
+    
+    // Insert the field at the current selection
+    Editor.insertNode(editor, field);
   };
 
   return (

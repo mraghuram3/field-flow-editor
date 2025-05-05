@@ -1,6 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import { createPlateUI, Plate, PlateEditor, TElement, TText, createPlugins } from '@udecode/plate-core';
+import { createEditor, Descendant, Editor } from 'slate';
+import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
+import { withHistory } from 'slate-history';
 import { fieldPlugin } from './field-plugin';
 import { autoFieldPlugin } from './autofield-plugin';
 import FieldSelector from './FieldSelector';
@@ -9,33 +11,57 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 // Initial editor value
-const initialValue: TElement[] = [
+const initialValue: Descendant[] = [
   {
     type: 'paragraph',
     children: [{ text: 'Welcome! Try typing {{first_name}} or use the field selector.' }],
   },
 ];
 
-// Define plugins
-const plugins = createPlugins([
-  fieldPlugin,
-  autoFieldPlugin,
-], {
-  components: createPlateUI(),
-});
+// Define a custom element renderer
+const Element = (props: any) => {
+  const { attributes, children, element } = props;
+  
+  switch (element.type) {
+    case 'field':
+      return fieldPlugin.renderElement(props);
+    default:
+      return <p {...attributes}>{children}</p>;
+  }
+};
+
+// Define a leaf renderer for text formatting
+const Leaf = ({ attributes, children, leaf }: any) => {
+  return <span {...attributes}>{children}</span>;
+};
 
 const FieldEditor: React.FC = () => {
-  const [editor, setEditor] = useState<PlateEditor | null>(null);
-  const [value, setValue] = useState<TElement[]>(initialValue);
+  const [value, setValue] = useState<Descendant[]>(initialValue);
   const [serialized, setSerialized] = useState<string>('');
   
   // Memoize the editor
-  const onEditorChange = useMemo(
-    () => (newValue: TElement[]) => {
-      setValue(newValue);
-    },
-    []
-  );
+  const editor = useMemo(() => {
+    // Create our base editor with React and history plugins
+    let baseEditor = withHistory(withReact(createEditor()));
+    
+    // Apply our custom plugins
+    if (autoFieldPlugin.withOverrides) {
+      baseEditor = autoFieldPlugin.withOverrides(baseEditor);
+    }
+    
+    // Mark field nodes as void and inline
+    const { isVoid, isInline } = baseEditor;
+    
+    baseEditor.isVoid = (element) => {
+      return element.type === 'field' ? true : isVoid(element);
+    };
+    
+    baseEditor.isInline = (element) => {
+      return element.type === 'field' ? true : isInline(element);
+    };
+    
+    return baseEditor;
+  }, []);
 
   const handleSave = () => {
     if (value) {
@@ -60,16 +86,18 @@ const FieldEditor: React.FC = () => {
         </div>
         
         <div className="p-4 overflow-y-auto flex-1">
-          <Plate
-            plugins={plugins}
-            initialValue={initialValue}
-            onChange={onEditorChange}
-            editableProps={{
-              placeholder: 'Type here...',
-              className: 'outline-none min-h-[250px] prose prose-sm max-w-none',
-            }}
-            onEditorChange={setEditor}
-          />
+          <Slate 
+            editor={editor} 
+            value={value} 
+            onChange={setValue}
+          >
+            <Editable
+              placeholder="Type here..."
+              className="outline-none min-h-[250px] prose prose-sm max-w-none"
+              renderElement={Element}
+              renderLeaf={Leaf}
+            />
+          </Slate>
         </div>
 
         {serialized && (
@@ -83,7 +111,7 @@ const FieldEditor: React.FC = () => {
       </div>
       
       <div className="md:w-72 w-full">
-        {editor && <FieldSelector editor={editor} />}
+        <FieldSelector editor={editor} />
       </div>
     </div>
   );

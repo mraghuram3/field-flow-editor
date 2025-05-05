@@ -1,19 +1,22 @@
 
-import { Node } from 'slate';
+import { Node, Element as SlateElement, Text } from 'slate';
 
 // Serializer function to convert field nodes to {{field_id}} format
 export const serializeToText = (nodes: Node[]): string => {
   return nodes
     .map((node) => {
-      if (node.type === 'field' && 'id' in node) {
-        // Serialize field node to {{field_id}} format
-        return `{{${node.id}}}`;
-      } else if ('text' in node) {
+      if (!Text.isText(node)) {
+        const element = node as SlateElement;
+        if (element.type === 'field' && 'id' in element) {
+          // Serialize field node to {{field_id}} format
+          return `{{${element.id}}}`;
+        } else if ('children' in element) {
+          // Recursively serialize children
+          return serializeToText(element.children as Node[]);
+        }
+      } else {
         // Return plain text nodes as is
         return node.text;
-      } else if ('children' in node) {
-        // Recursively serialize children
-        return serializeToText(node.children as Node[]);
       }
       return '';
     })
@@ -24,21 +27,23 @@ export const serializeToText = (nodes: Node[]): string => {
 export const serializeToHtml = (nodes: Node[]): string => {
   return nodes
     .map((node) => {
-      if (node.type === 'field' && 'id' in node) {
-        // Convert field nodes to span elements with data attributes
-        return `<span data-field="${node.id}">{{${node.id}}}</span>`;
-      } else if ('text' in node) {
-        // Return plain text nodes as is
-        return node.text;
-      } else if ('children' in node) {
-        // Recursively serialize children based on node type
-        if (node.type === 'paragraph') {
-          return `<p>${serializeToHtml(node.children as Node[])}</p>`;
-        } else if (node.type === 'heading') {
-          const level = (node as any).level || 1;
-          return `<h${level}>${serializeToHtml(node.children as Node[])}</h${level}>`;
+      if (!Text.isText(node)) {
+        const element = node as SlateElement;
+        if (element.type === 'field' && 'id' in element) {
+          // Convert field nodes to span elements with data attributes
+          return `<span data-field="${element.id}">{{${element.id}}}</span>`;
+        } else if ('children' in element) {
+          // Recursively serialize children based on node type
+          if (element.type === 'paragraph') {
+            return `<p>${serializeToHtml(element.children as Node[])}</p>`;
+          } else if (element.type === 'heading' && 'level' in element) {
+            const level = element.level || 1;
+            return `<h${level}>${serializeToHtml(element.children as Node[])}</h${level}>`;
+          }
+          return serializeToHtml(element.children as Node[]);
         }
-        return serializeToHtml(node.children as Node[]);
+      } else {
+        return node.text;
       }
       return '';
     })

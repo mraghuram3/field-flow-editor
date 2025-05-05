@@ -17,7 +17,7 @@ const Index = () => {
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Rich Text Field Editor</h2>
           <p className="text-gray-600">
-            Create templates with dynamic fields. Type <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">{{field_id}}</code> or use the field selector to insert fields.
+            Create templates with dynamic fields. Type <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">{"{{field_id}}"}</code> or use the field selector to insert fields.
           </p>
         </div>
         
@@ -28,7 +28,7 @@ const Index = () => {
       
       <footer className="border-t py-6 mt-12">
         <div className="container text-center text-sm text-gray-500">
-          Field Flow Editor - Built with Plate.js and React
+          Field Flow Editor - Built with Slate.js and React
         </div>
       </footer>
     </div>
