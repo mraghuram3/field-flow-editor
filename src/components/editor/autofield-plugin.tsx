@@ -1,12 +1,13 @@
 
 import { Editor, Range, Transforms, Text, Node } from 'slate';
 import { ReactEditor } from 'slate-react';
+import { HistoryEditor } from 'slate-history';
 import { createFieldElement } from './field-plugin';
 
 // Regex to match {{field_id}} patterns
 const FIELD_PATTERN = /{{([a-z_]+)}}/i;
 
-export const withAutofield = (editor: Editor & ReactEditor) => {
+export const withAutofield = (editor: Editor & ReactEditor & HistoryEditor) => {
   const { insertText } = editor;
 
   editor.insertText = (text) => {

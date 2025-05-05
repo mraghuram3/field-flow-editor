@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import { createEditor, Descendant, Editor } from 'slate';
+import { createEditor, Descendant, Editor, Element as SlateElement } from 'slate';
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
-import { withHistory } from 'slate-history';
+import { withHistory, HistoryEditor } from 'slate-history';
 import { fieldPlugin } from './field-plugin';
 import { autoFieldPlugin } from './autofield-plugin';
 import FieldSelector from './FieldSelector';
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 // Initial editor value
 const initialValue: Descendant[] = [
   {
-    type: 'paragraph',
+    type: 'paragraph' as const,
     children: [{ text: 'Welcome! Try typing {{first_name}} or use the field selector.' }],
   },
 ];
@@ -52,11 +52,11 @@ const FieldEditor: React.FC = () => {
     // Mark field nodes as void and inline
     const { isVoid, isInline } = baseEditor;
     
-    baseEditor.isVoid = (element) => {
+    baseEditor.isVoid = (element: any) => {
       return element.type === 'field' ? true : isVoid(element);
     };
     
-    baseEditor.isInline = (element) => {
+    baseEditor.isInline = (element: any) => {
       return element.type === 'field' ? true : isInline(element);
     };
     
@@ -88,7 +88,7 @@ const FieldEditor: React.FC = () => {
         <div className="p-4 overflow-y-auto flex-1">
           <Slate 
             editor={editor} 
-            value={value} 
+            initialValue={value} 
             onChange={setValue}
           >
             <Editable

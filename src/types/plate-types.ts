@@ -2,6 +2,25 @@
 import { Element, NodeEntry } from 'slate';
 import { RenderElementProps } from 'slate-react';
 
+// Extend Slate's Element type with our custom elements
+declare module 'slate' {
+  interface CustomTypes {
+    Editor: BaseEditor & ReactEditor & HistoryEditor;
+    Element: { type?: string } & {
+      type: 'paragraph' | 'field';
+      children: CustomText[];
+    };
+    Text: CustomText;
+  }
+}
+
+// Define our custom text
+interface CustomText {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+}
+
 // Define our custom element types
 export type CustomElementTypes = 'field';
 

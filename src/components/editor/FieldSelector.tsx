@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AVAILABLE_FIELDS } from '../../data/fields';
-import { Editor } from 'slate';
+import { Editor, Transforms } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { createFieldElement } from './field-plugin';
 import { Tag } from 'lucide-react';
@@ -21,7 +21,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({ editor }) => {
     }
     
     // Insert the field at the current selection
-    Editor.insertNode(editor, field);
+    Transforms.insertNodes(editor, field);
   };
 
   return (
